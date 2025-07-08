@@ -1,3 +1,5 @@
 # aboba
 
-Describe your project here.
+Web scrapper for vacancies in dou.ua.
+
+> [!note] To bee continued...
