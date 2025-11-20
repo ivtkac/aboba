@@ -30,7 +30,7 @@ class JobScraper(ABC):
 
 
 def get_url(site: Site, href: str) -> str:
-    return f"{site}/{href}"
+    return f"{site.value}/{href}"
 
 
 class DouJobScraper(JobScraper):

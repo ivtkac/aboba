@@ -1,4 +1,3 @@
-from contextlib import contextmanager
 from repositories import Job
 from strategies import JobScraper, DouJobScraper, Site
 from selenium import webdriver
