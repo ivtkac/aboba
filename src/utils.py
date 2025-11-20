@@ -1,4 +1,6 @@
 import datetime
+
+
 def convert_ukrainian_date(date_str: str) -> str | None:
     current_year = datetime.datetime.now().year
 
@@ -31,3 +33,6 @@ def convert_ukrainian_date(date_str: str) -> str | None:
     date_obj = datetime.date(current_year, month, day)
     return date_obj.strftime("%Y-%m-%d")
 
+
+def contains_currency(text: str):
+    return "грн" in text or "₴" in text

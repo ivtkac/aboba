@@ -6,7 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium import webdriver
 import urllib
 
-from utils import convert_ukrainian_date
+from utils import convert_ukrainian_date, contains_currency
 from repositories import Job, JobRepository
 
 
@@ -104,23 +104,17 @@ class WorkUaScraper(JobScraper):
         link = title_element.get_attribute("href") or ""
         description = element.find_element(By.CSS_SELECTOR, "p.ellipsis").text
 
-        salary = "Не зазначено"
         salary_elements_full = element.find_elements(
             By.CSS_SELECTOR, "div.job-link > *:nth-child(2) span"
         )
-        for el in salary_elements_full:
-            text = el.text.strip()
-            if "грн" in text or "₴" in text:
-                salary = text
-                break
+        salary = self._extract_salary_or_company(
+            salary_elements_full, filter_func=contains_currency
+        )
 
-        company = "Не зазначено"
         company_elements = element.find_elements(By.CSS_SELECTOR, "span.strong-600")
-        for el in company_elements:
-            text = el.text.strip()
-            if "грн" not in text and "₴" not in text and text:
-                company = text
-                break
+        company = self._extract_salary_or_company(
+            company_elements, filter_func=lambda text: not contains_currency(text)
+        )
 
         location_elements = element.find_elements(By.XPATH, "./div[3]/span[2]")
         location = (
@@ -141,5 +135,12 @@ class WorkUaScraper(JobScraper):
             link=link,
             salary=salary,
             location=location,
-            date_posted=date_posted or "Не зазначено"
+            date_posted=date_posted or "Не зазначено",
         )
+
+    def _extract_salary_or_company(self, elements: list[WebElement], filter_func=None):
+        for el in elements:
+            text = el.text.strip()
+            if text and (filter_func is None or filter_func(text)):
+                return text
+        return "Не зазначено"
