@@ -1,5 +1,11 @@
 from repositories import Job
-from strategies import JobScraper, DouJobScraper, Site, WorkUaScraper
+from strategies import (
+    JobScraper,
+    DouJobsScraper,
+    FirstDouJobScraper,
+    Site,
+    WorkUaScraper,
+)
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from repositories import JobRepository
@@ -31,8 +37,10 @@ class JobScraperBuilder:
         return self.repository.getall()
 
     def _create_scraper(self, site: Site, category: str) -> JobScraper | None:
+        if site == Site.FIRST_JOB_DOU:
+            return FirstDouJobScraper(self.driver, self.repository, category)
         if site == Site.DOU:
-            return DouJobScraper(self.driver, self.repository, category)
+            return DouJobsScraper(self.driver, self.repository, category)
         if site == Site.WORK:
             return WorkUaScraper(self.driver, self.repository, category)
         return None

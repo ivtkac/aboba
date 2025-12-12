@@ -11,7 +11,8 @@ from repositories import Job, JobRepository
 
 
 class Site(Enum):
-    DOU = "https://jobs.dou.ua/first-job"
+    FIRST_JOB_DOU = "https://jobs.dou.ua/first-job"
+    DOU = "https://jobs.dou.ua/vacancies/"
     WORK = "https://www.work.ua/jobs"
 
 
@@ -51,9 +52,9 @@ class JobScraper(ABC):
         pass
 
 
-class DouJobScraper(JobScraper):
+class FirstDouJobScraper(JobScraper):
     def _get_url(self) -> str:
-        return f"{Site.DOU.value}/?category={self.category}"
+        return f"{Site.FIRST_JOB_DOU.value}/?category={self.category}"
 
     def _get_job_elements(self) -> list[WebElement]:
         return self.driver.find_elements(By.CLASS_NAME, "l-vacancy")
@@ -85,6 +86,12 @@ class DouJobScraper(JobScraper):
             location=location,
             date_posted=date_posted,
         )
+
+
+class DouJobsScraper(FirstDouJobScraper):
+    def _get_url(self) -> str:
+        category = self.category.replace(" ", "+")
+        return f"{Site.DOU.value}/?remote&exp=0-1&search={category}"
 
 
 class WorkUaScraper(JobScraper):
