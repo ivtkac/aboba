@@ -104,6 +104,8 @@ class FirstDouJobScraper(JobScraper):
         date_posted = element.find_element(By.CLASS_NAME, "date").text
         date_posted = convert_ukrainian_date(date_posted) if date_posted else None
 
+        logger.info(f"Found job: {title}, {link} ({location})")
+
         return Job(
             title=title,
             description=description,
