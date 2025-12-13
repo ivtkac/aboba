@@ -3,11 +3,16 @@ from enum import Enum
 import urllib.parse
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
 from selenium import webdriver
 import urllib
+import logging
+
 
 from utils import convert_ukrainian_date, contains_currency
 from repositories import Job, JobRepository
+
+logger = logging.getLogger(__name__)
 
 
 class Site(Enum):
@@ -21,7 +26,7 @@ class JobScraper(ABC):
         self, driver: webdriver.Chrome, repository: JobRepository, category: str
     ):
         self.driver = driver
-        self.repository = JobRepository()
+        self.repository = repository
         self.category = category
 
     def find_jobs(self):
@@ -34,10 +39,32 @@ class JobScraper(ABC):
                     job = self._parse_job_element(element)
                     if job:
                         self.repository.insert(job)
-                except Exception as _:
-                    continue
-        except Exception as _:
-            pass
+                except NoSuchElementException as e:
+                    logger.warning(f"Element not found for job: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error parsing job: {e}", exc_info=True)
+
+    def _safe_find_elemet(
+        self, element: WebElement, by: str, value: str, default: str = ""
+    ) -> str:
+        try:
+            return element.find_element(by, value).text.strip()
+        except NoSuchElementException:
+            return default
+
+    def _safe_find_attribute(
+        self,
+        element: WebElement,
+        by: str,
+        value: str,
+        attribute: str,
+        default: str = "",
+    ) -> str:
+        try:
+            el = element.find_element(by, value)
+            return el.get_attribute(attribute) or default
+        except NoSuchElementException:
+            return default
 
     @abstractmethod
     def _parse_job_element(self, element: WebElement) -> Job | None:
@@ -90,8 +117,7 @@ class FirstDouJobScraper(JobScraper):
 
 class DouJobsScraper(FirstDouJobScraper):
     def _get_url(self) -> str:
-        category = self.category.replace(" ", "+")
-        return f"{Site.DOU.value}/?remote&exp=0-1&search={category}"
+        return f"{Site.DOU.value}/?search={self.category}&exp=0-1"
 
 
 class WorkUaScraper(JobScraper):

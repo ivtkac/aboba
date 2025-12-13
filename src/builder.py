@@ -1,4 +1,4 @@
-from repositories import Job
+from repositories import Job, JobRepository
 from strategies import (
     JobScraper,
     DouJobsScraper,
@@ -8,7 +8,6 @@ from strategies import (
 )
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from repositories import JobRepository
 
 
 class JobScraperBuilder:
@@ -16,13 +15,18 @@ class JobScraperBuilder:
         self.scrapers: list[JobScraper] = []
         self.driver = self._get_driver()
         self.repository = JobRepository()
-        self.jobs: list[Job] = []
 
     def add_scrapers(self, scrapers: list[tuple[Site, str]]):
         for site, category in scrapers:
             self.add_scraper(site, category)
 
     def add_scraper(self, site: Site, category: str):
+        if not category or not category.strip():
+            raise ValueError("Category cannot be empty")
+
+        if not isinstance(site, Site):
+            raise TypeError(f"Expected Site enum, got {type(site)}")
+
         scraper = self._create_scraper(site, category)
         if scraper:
             self.scrapers.append(scraper)
@@ -33,8 +37,13 @@ class JobScraperBuilder:
 
         self.driver.quit()
 
-    def get_jobs(self) -> list[Job]:
-        return self.repository.getall()
+    def __enter__(self):
+        self.driver = self._get_driver()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.driver:
+            self.driver.quit()
 
     def _create_scraper(self, site: Site, category: str) -> JobScraper | None:
         if site == Site.FIRST_JOB_DOU:

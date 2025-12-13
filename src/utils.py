@@ -19,7 +19,7 @@ def convert_ukrainian_date(date_str: str) -> str | None:
         "грудня": 12,
     }
 
-    parts = date_str.strip()
+    parts = date_str.strip().split()
     if len(parts) != 2:
         return None
 
