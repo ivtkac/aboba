@@ -1,5 +1,14 @@
 # aboba
 
-Web scrapper for vacancies in jobs.dou.ua, work.ua.
+Web scrapper for vacancies in jobs.dou.ua and work.ua.
 
-> [!note] To bee continued...
+## Examples
+
+````bash
+python src/main.py --site dou work --category ".NET" "Python"
+```
+
+```bash
+python src/main.py --site first_job --category "DevOps"
+```
+````
