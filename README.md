@@ -1,6 +1,6 @@
 # aboba
 
-Web scrapper for vacancies in jobs.dou.ua and work.ua, now it works also for djinni 🚀.
+Web scrapper for vacancies in jobs.dou.ua and work.ua. Now it works also for djinni 🚀.
 
 ## Examples
 
