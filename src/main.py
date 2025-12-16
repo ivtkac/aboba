@@ -7,7 +7,7 @@ def main():
     parser = argparse.ArgumentParser(description="Job Scrapper")
     parser.add_argument(
         "--site",
-        choices=["dou", "work", "first-job"],
+        choices=["dou", "work", "first-job", "djinni"],
         nargs="+",
         required=True,
         help="Sites to scrape",
@@ -16,7 +16,12 @@ def main():
 
     args = parser.parse_args()
 
-    sites_map = {"dou": Site.DOU, "work": Site.WORK, "first-job": Site.FIRST_JOB_DOU}
+    sites_map = {
+        "dou": Site.DOU,
+        "work": Site.WORK,
+        "first-job": Site.FIRST_JOB_DOU,
+        "djinni": Site.DJINNI,
+    }
 
     builder = JobScraperBuilder()
     for site in args.site:

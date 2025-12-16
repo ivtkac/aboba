@@ -12,6 +12,10 @@ import logging
 from utils import convert_ukrainian_date, contains_currency
 from repositories import Job, JobRepository
 
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,6 +23,7 @@ class Site(Enum):
     FIRST_JOB_DOU = "https://jobs.dou.ua/first-job"
     DOU = "https://jobs.dou.ua/vacancies/"
     WORK = "https://www.work.ua/jobs"
+    DJINNI = "https://djinni.co/jobs"
 
 
 class JobScraper(ABC):
@@ -163,6 +168,8 @@ class WorkUaScraper(JobScraper):
             if date_posted:
                 date_posted = date_posted.split(" ")[0]
 
+        logger.info(f"Found job: {title}, {link} ({location}), {company}")
+
         return Job(
             title=title,
             description=description,
@@ -179,3 +186,69 @@ class WorkUaScraper(JobScraper):
             if text and (filter_func is None or filter_func(text)):
                 return text
         return "Не зазначено"
+
+
+class DjinniScraper(JobScraper):
+    def _get_url(self) -> str:
+        return f"{Site.DJINNI.value}/?primary_keyword={self.category}&exp_level=no_exp&exp_level=1y"
+
+    def _get_job_elements(self) -> list[WebElement]:
+        # return self.driver.find_elements(By.CLASS_NAME, "list-jobs")
+        return self.driver.find_elements(By.CSS_SELECTOR, 'li[id^="job-item-"]')
+
+    def _parse_job_element(self, element: WebElement) -> Job | None:
+        try:
+            title_el = element.find_element(By.CLASS_NAME, "job-item__title-link")
+            title = title_el.text
+
+            link = title_el.get_attribute("href") or "Невідомо"
+
+            company_el = element.find_element(
+                By.CSS_SELECTOR, '[data-analytics="company_page"]'
+            )
+            company = company_el.text
+
+            try:
+                description_el = element.find_element(By.CLASS_NAME, "js-original-text")
+                description = description_el.text
+            except Exception as _:
+                description_el = element.find_element(
+                    By.CLASS_NAME, "js-truncated-text"
+                )
+                description = description_el.text
+
+            location_el = element.find_element(By.CLASS_NAME, "text-nowrap")
+            location = location_el.text
+
+            try:
+                salary_el = element.find_element(
+                    By.CLASS_NAME, "text-success text-nowrap"
+                )
+                salary = salary_el.text or "Не зазначено"
+            except Exception as _:
+                salary = "Не зазначено"
+
+            try:
+                date_posted_el = element.find_element(
+                    By.CSS_SELECTOR, '[data-toggle="tooltip"]'
+                )
+                date_posted = (
+                    date_posted_el.get_attribute("data-original-title")
+                    or date_posted_el.text
+                )
+            except Exception as _:
+                date_posted = "Не зазначено"
+
+            logger.info(f"Found job: {title}, {link} ({location}), {company}")
+
+            return Job(
+                title,
+                description,
+                company,
+                link,
+                location,
+                salary or "Не зазначено",
+                date_posted,
+            )
+        except Exception as _:
+            return None

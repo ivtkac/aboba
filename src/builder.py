@@ -1,5 +1,6 @@
 from repositories import Job, JobRepository
 from strategies import (
+    DjinniScraper,
     JobScraper,
     DouJobsScraper,
     FirstDouJobScraper,
@@ -52,6 +53,8 @@ class JobScraperBuilder:
             return DouJobsScraper(self.driver, self.repository, category)
         if site == Site.WORK:
             return WorkUaScraper(self.driver, self.repository, category)
+        if site == Site.DJINNI:
+            return DjinniScraper(self.driver, self.repository, category)
         return None
 
     def _get_driver(self) -> webdriver.Chrome:
