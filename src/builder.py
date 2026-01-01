@@ -1,4 +1,4 @@
-from repositories import Job, JobRepository
+from repositories import JobRepository
 from strategies import (
     DjinniScraper,
     JobScraper,
